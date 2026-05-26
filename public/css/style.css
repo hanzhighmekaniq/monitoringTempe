@@ -1,0 +1,63 @@
+body{
+    background-color: #f5f7fb;
+}
+
+/* CARD */
+.monitor-card{
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    transition: 0.3s;
+}
+
+.monitor-card:hover{
+    transform: translateY(-3px);
+}
+
+/* VALUE SENSOR */
+.monitor-value{
+    font-size: 42px;
+    font-weight: bold;
+}
+
+/* DATA LOG */
+.log-item{
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.log-item:last-child{
+    border-bottom: none;
+}
+
+.log-time{
+    font-weight: 600;
+    color: #6c757d;
+}
+
+.log-data{
+    font-weight: 500;
+}
+
+/* NAVBAR */
+.navbar{
+    border-bottom: 3px solid #198754;
+}
+
+.nav-link{
+    transition: 0.3s;
+}
+
+.nav-link:hover{
+    color: #20c997 !important;
+}
+
+#data-logs{
+
+    max-height: 450px;
+
+    overflow-y: auto;
+
+}
