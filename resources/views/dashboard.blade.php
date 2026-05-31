@@ -38,7 +38,7 @@
         </h1>
 
         <!-- MODE CONTROL -->
-        <div class="row justify-content-center mb-4">
+        {{-- <div class="row justify-content-center mb-4">
 
             <div class="col-md-4">
 
@@ -65,6 +65,84 @@
                             Manual
 
                         </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div> --}}
+
+        <div class="row justify-content-center mb-4">
+
+            <div class="col-md-4">
+
+                <div class="card monitor-card p-4 text-center">
+
+                    <h4 class="mb-4">
+                        ⚙️ Mode Control
+                    </h4>
+
+                    <div class="btn-group w-100">
+
+                        <form action="/system/auto"
+                            method="POST"
+                            class="w-50">
+
+                            @csrf
+
+                            <button
+                                type="submit"
+                                id="autoMode"
+                                class="btn w-100
+                                {{ $control->system_mode == 'auto'
+                                    ? 'btn-success'
+                                    : 'btn-outline-success' }}">
+
+                                Otomatis
+
+                            </button>
+
+                        </form>
+
+                        <form action="/system/manual"
+                            method="POST"
+                            class="w-50">
+
+                            @csrf
+
+                            <button
+                                type="submit"
+                                id="manualMode"
+                                class="btn w-100
+                                {{ $control->system_mode == 'manual'
+                                    ? 'btn-secondary'
+                                    : 'btn-outline-secondary' }}">
+
+                                Manual
+
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                    <div class="mt-3">
+
+                        <strong>
+                            Mode Saat Ini :
+                        </strong>
+
+                        <span
+                            class="badge
+                            {{ $control->system_mode == 'auto'
+                                ? 'bg-success'
+                                : 'bg-secondary' }}">
+
+                            {{ strtoupper($control->system_mode) }}
+
+                        </span>
 
                     </div>
 
@@ -150,6 +228,15 @@
 
                         </div>
 
+                        <div class="mb-4">
+
+                            PWM :
+                            <span id="fanPwm">
+                                0
+                            </span>
+
+                        </div>
+
                         <div class="d-flex justify-content-center gap-3">
 
                             <button
@@ -202,6 +289,15 @@
 
                             <span id="heaterSpread">
                                 Mati
+                            </span>
+
+                        </div>
+
+                        <div class="mb-4">
+
+                            PWM :
+                            <span id="heaterPwm">
+                                0
                             </span>
 
                         </div>
@@ -287,198 +383,197 @@
         // ELEMENT
         // ======================
 
-        const autoBtn =
-        document.getElementById(
-            'autoMode'
-        );
-
-        const manualBtn =
-        document.getElementById(
-            'manualMode'
-        );
-
-        const controlButtons =
-        document.querySelectorAll(
-            '.control-btn'
-        );
+        const autoBtn = document.getElementById('autoMode');
+        const manualBtn = document.getElementById('manualMode');
+        const controlButtons = document.querySelectorAll('.control-btn');
 
         // ======================
         // TOAST
         // ======================
 
-        function showToast(message){
+        function showToast(message) {
+            document.getElementById('toastMessage').innerText = message;
 
-            document.getElementById(
-                'toastMessage'
-            ).innerText = message;
-
-            const toast =
-            new bootstrap.Toast(
-                document.getElementById(
-                    'liveToast'
-                )
+            const toast = new bootstrap.Toast(
+                document.getElementById('liveToast')
             );
 
             toast.show();
         }
 
         // ======================
-        // SAVE MODE
+        // HELPER
         // ======================
 
-        function saveControlMode(mode){
+        function getModeText(mode) {
+            switch (mode) {
+                case 'slow':
+                    return 'Lambat';
 
-            localStorage.setItem(
-                'controlMode',
-                mode
-            );
-        }
+                case 'fast':
+                    return 'Cepat';
 
-        // ======================
-        // LOAD MODE
-        // ======================
-
-        function loadControlMode(){
-
-            const mode =
-            localStorage.getItem(
-                'controlMode'
-            );
-
-            // ======================
-            // MANUAL
-            // ======================
-
-            if(mode == 'manual'){
-
-                manualBtn.classList.add(
-                    'btn-success'
-                );
-
-                manualBtn.classList.remove(
-                    'btn-outline-secondary'
-                );
-
-                autoBtn.classList.add(
-                    'btn-outline-secondary'
-                );
-
-                autoBtn.classList.remove(
-                    'btn-success'
-                );
-
-                controlButtons.forEach(
-                    button => {
-
-                        button.disabled = false;
-
-                    }
-                );
-            }
-
-            // ======================
-            // AUTO
-            // ======================
-
-            else{
-
-                autoBtn.classList.add(
-                    'btn-success'
-                );
-
-                autoBtn.classList.remove(
-                    'btn-outline-secondary'
-                );
-
-                manualBtn.classList.add(
-                    'btn-outline-secondary'
-                );
-
-                manualBtn.classList.remove(
-                    'btn-success'
-                );
-
-                controlButtons.forEach(
-                    button => {
-
-                        button.disabled = true;
-
-                    }
-                );
+                default:
+                    return 'Mati';
             }
         }
 
+        function saveControlMode(mode) {
+            localStorage.setItem('controlMode', mode);
+        }
+
+        function setManualState(isManual) {
+
+            manualBtn.classList.toggle('btn-success', isManual);
+            manualBtn.classList.toggle('btn-outline-secondary', !isManual);
+
+            autoBtn.classList.toggle('btn-success', !isManual);
+            autoBtn.classList.toggle('btn-outline-secondary', isManual);
+
+            controlButtons.forEach(button => {
+                button.disabled = !isManual;
+            });
+        }
+
+        function loadControlMode() {
+            const mode = localStorage.getItem('controlMode');
+
+            setManualState(mode === 'manual');
+        }
+
         // ======================
-        // AUTO MODE
+        // MODE BUTTON
         // ======================
 
-        autoBtn.addEventListener(
-            'click',
-            () => {
+        autoBtn.addEventListener('click', () => {
 
-                saveControlMode('auto');
+            saveControlMode('auto');
 
-                loadControlMode();
+            setManualState(false);
 
-                showToast(
-                    'Mode Otomatis'
-                );
+            showToast('Mode Otomatis');
+        });
+
+        manualBtn.addEventListener('click', () => {
+
+            saveControlMode('manual');
+
+            setManualState(true);
+
+            showToast('Mode Manual');
+        });
+
+        // ======================
+        // DEVICE CONTROL
+        // ======================
+
+        async function setDeviceMode(url, mode, elementId, label) {
+
+            try {
+
+                await fetch(`${url}/${mode}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                });
+
+                const text = getModeText(mode);
+
+                document.getElementById(elementId).innerText = text;
+
+                showToast(`${label}: ${text}`);
+
+            } catch (error) {
+
+                console.error(error);
+
+                showToast('Gagal mengubah mode');
             }
-        );
+        }
 
-        // ======================
-        // MANUAL MODE
-        // ======================
+        async function loadDeviceMode(url, field, elementId) {
 
-        manualBtn.addEventListener(
-            'click',
-            () => {
+            try {
 
-                saveControlMode('manual');
+                const response = await fetch(url);
 
-                loadControlMode();
+                const data = await response.json();
 
-                showToast(
-                    'Mode Manual'
-                );
+                document.getElementById(elementId).innerText =
+                    getModeText(data[field]);
+
+            } catch (error) {
+
+                console.error(error);
             }
-        );
+        }
+
+        async function loadLatestSensor()
+        {
+            try {
+
+                const response =
+                await fetch('/latest-data');
+
+                const data =
+                await response.json();
+
+                document.getElementById(
+                    'temperature'
+                ).innerText =
+                data.temperature;
+
+                document.getElementById(
+                    'humidity'
+                ).innerText =
+                data.humidity;
+
+            }
+            catch(error)
+            {
+                console.error(error);
+            }
+        }
+
+        async function loadPwm()
+        {
+            try {
+
+                const response =
+                await fetch('/pwm');
+
+                const data =
+                await response.json();
+
+                document.getElementById(
+                    'fanPwm'
+                ).innerText =
+                data.fan_pwm;
+
+                document.getElementById(
+                    'heaterPwm'
+                ).innerText =
+                data.heater_pwm;
+
+            }
+            catch(error)
+            {
+                console.error(error);
+            }
+        }
 
         // ======================
         // FAN
         // ======================
 
-        async function setFan(mode){
+        function setFan(mode) {
 
-            await fetch('/fan/' + mode, {
-
-                method: 'POST',
-
-                headers: {
-
-                    'X-CSRF-TOKEN':
-                    '{{ csrf_token() }}'
-                }
-            });
-
-            let text = 'Mati';
-
-            if(mode == 'slow'){
-
-                text = 'Lambat';
-            }
-
-            else if(mode == 'fast'){
-
-                text = 'Cepat';
-            }
-
-            document.getElementById(
-                'fan'
-            ).innerText = text;
-
-            showToast(
-                'Fan: ' + text
+            setDeviceMode(
+                '/fan',
+                mode,
+                'fan',
+                'Fan'
             );
         }
 
@@ -486,40 +581,13 @@
         // HEATER
         // ======================
 
-        async function setHeaterSpread(mode){
+        function setHeaterSpread(mode) {
 
-            await fetch(
-                '/heater-spread/' + mode,
-                {
-
-                    method: 'POST',
-
-                    headers: {
-
-                        'X-CSRF-TOKEN':
-                        '{{ csrf_token() }}'
-                    }
-                }
-            );
-
-            let text = 'Mati';
-
-            if(mode == 'slow'){
-
-                text = 'Lambat';
-            }
-
-            else if(mode == 'fast'){
-
-                text = 'Cepat';
-            }
-
-            document.getElementById(
-                'heaterSpread'
-            ).innerText = text;
-
-            showToast(
-                'Heater: ' + text
+            setDeviceMode(
+                '/heater-spread',
+                mode,
+                'heaterSpread',
+                'Heater'
             );
         }
 
@@ -527,76 +595,47 @@
         // INIT
         // ======================
 
-        document.addEventListener(
-            'DOMContentLoaded',
-            () => {
+        document.addEventListener('DOMContentLoaded', () => {
 
-                loadControlMode();
+            loadControlMode();
 
-                loadFanMode();
-
-                loadHeaterMode();
-
-            }
-        );
-
-        async function loadFanMode(){
-
-            const response =
-            await fetch('/fan-mode');
-
-            const data =
-            await response.json();
-
-            const mode =
-            data.fan_mode;
-
-            let text = 'Mati';
-
-            if(mode == 'slow'){
-
-                text = 'Lambat';
-            }
-
-            else if(mode == 'fast'){
-
-                text = 'Cepat';
-            }
-
-            document.getElementById(
+            loadDeviceMode(
+                '/fan-mode',
+                'fan_mode',
                 'fan'
-            ).innerText = text;
-        }
-
-        async function loadHeaterMode(){
-
-            const response =
-            await fetch(
-                '/heater-spread-mode'
             );
 
-            const data =
-            await response.json();
-
-            const mode =
-            data.heater_spread_mode;
-
-            let text = 'Mati';
-
-            if(mode == 'slow'){
-
-                text = 'Lambat';
-            }
-
-            else if(mode == 'fast'){
-
-                text = 'Cepat';
-            }
-
-            document.getElementById(
+            loadDeviceMode(
+                '/heater-spread-mode',
+                'heater_spread_mode',
                 'heaterSpread'
-            ).innerText = text;
-        }
+            );
+
+            loadlatestSensor();
+
+            loadPwm();
+
+        });
+
+        setInterval(() => {
+
+            loadLatestSensor();
+
+            loadPwm();
+
+            loadDeviceMode(
+                '/fan-mode',
+                'fan_mode',
+                'fan'
+            );
+
+            loadDeviceMode(
+                '/heater-spread-mode',
+                'heater_spread_mode',
+                'heaterSpread'
+            );
+
+        }, 5000);
 
     </script>
 

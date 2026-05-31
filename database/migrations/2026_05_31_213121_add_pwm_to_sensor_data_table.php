@@ -11,11 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('dht22s', function (Blueprint $table) {
-            $table->id();
-            $table->float('temperature');
-            $table->float('humidity');
-            $table->timestamps();
+        Schema::table('sensor_data', function (Blueprint $table) {
+            $table->integer('fan_pwm')->nullable();
+            $table->integer('heater_pwm')->nullable();
         });
     }
 
@@ -24,6 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('dht22s');
+        Schema::table('sensor_data', function (Blueprint $table) {
+            //
+        });
     }
 };

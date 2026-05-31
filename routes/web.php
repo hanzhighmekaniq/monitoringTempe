@@ -6,11 +6,29 @@ use App\Http\Controllers\SensorController;
 use App\Http\Controllers\AktuatorController;
 use App\Models\SensorData;
 use App\Models\Control;
+use App\Services\FuzzyService;
 
 Route::get('/navbar', function () {
     return view('layouts.navbar');
 });
 
+Route::get('/', function () {
+
+    $latest = SensorData::latest()->first();
+
+    $datas = SensorData::latest()
+    ->take(10)
+    ->get()
+    ->reverse();
+
+    $control = Control::first();
+
+    return view('dashboard', compact(
+        'latest',
+        'datas',
+        'control'
+    ));
+});
 Route::get('/dashboard', function () {
 
     $latest = SensorData::latest()->first();
@@ -20,13 +38,13 @@ Route::get('/dashboard', function () {
     ->get()
     ->reverse();
 
+    $control = Control::first();
+
     return view('dashboard', compact(
         'latest',
-        'datas'
+        'datas',
+        'control'
     ));
-
-    
-
 });
 
 Route::get('/riwayat', function () {
@@ -93,3 +111,38 @@ Route::get('/heater-spread-mode',
     [AktuatorController::class,
     'getHeaterSpreadMode']
 );
+
+// ======================
+// SYSTEM MODE
+// ======================
+
+Route::post('/system/{mode}',
+    [AktuatorController::class,
+    'updateSystemMode']
+);
+
+Route::get('/system-mode',
+    [AktuatorController::class,
+    'getSystemMode']
+);
+
+Route::get('/pwm',
+    [AktuatorController::class,
+    'getPwm']
+);
+
+Route::get('/latest-data', function () {
+
+    return \App\Models\SensorData::latest()
+        ->first();
+
+});
+
+Route::get('/test-fuzzy', function () {
+
+    $result = app(FuzzyService::class)
+        ->calculate(32, 75);
+
+    dd($result);
+
+});

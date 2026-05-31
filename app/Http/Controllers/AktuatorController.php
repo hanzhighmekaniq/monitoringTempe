@@ -63,4 +63,43 @@ class AktuatorController extends Controller
 
         return back();
     }
+
+    // ======================
+    // GET SYSTEM MODE
+    // ======================
+
+    public function getSystemMode()
+    {
+        $control = Control::first();
+
+        return response()->json([
+            'system_mode' =>
+            $control->system_mode
+        ]);
+    }
+
+    // ======================
+    // UPDATE SYSTEM MODE
+    // ======================
+
+    public function updateSystemMode($mode)
+    {
+        $control = Control::first();
+
+        $control->system_mode = $mode;
+
+        $control->save();
+
+        return back();
+    }
+
+    public function getPwm()
+    {
+        $control = Control::first();
+
+        return response()->json([
+            'fan_pwm' => $control->fan_pwm,
+            'heater_pwm' => $control->heater_pwm
+        ]);
+    }
 }
