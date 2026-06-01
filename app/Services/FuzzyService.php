@@ -80,8 +80,8 @@ class FuzzyService
         // AGREGASI FAN
         // =====================================================
 
-        $fanMati = max($r1, $r2, $r4, $r5);
-        $fanLambat = max($r3, $r6);
+        $fanMati = max($r2, $r3, $r5, $r6);
+        $fanLambat = max($r1, $r4);
         $fanCepat = max($r7, $r8, $r9);
 
         // =====================================================
@@ -89,20 +89,19 @@ class FuzzyService
         // =====================================================
 
         $heaterMati = max(
-            $r3,
+            $r4,
             $r5,
-            $r6,
             $r7,
             $r8,
             $r9
         );
 
         $heaterLambat = max(
-            $r2,
-            $r4
+            $r1,
+            $r6
         );
 
-        $heaterTerang = $r1;
+        $heaterTerang = max($r2, $r3);
 
         // =====================================================
         // TITIK TENGAH OUTPUT
