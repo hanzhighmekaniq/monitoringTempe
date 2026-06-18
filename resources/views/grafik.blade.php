@@ -7,43 +7,35 @@
 
     <title>Grafik Monitoring</title>
 
-    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-    <!-- Custom CSS -->
     <link href="{{ asset('css/style.css') }}" rel="stylesheet">
 
-    <!-- Chart JS -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </head>
 
 <body>
 
-    <!-- NAVBAR -->
     @include('layouts.navbar')
 
     <div class="container py-5">
 
-        <!-- TITLE -->
         <div class="text-center mb-5">
             <h1 class="fw-bold">
                 📈 Grafik Monitoring Fermentasi
             </h1>
 
             <p class="text-muted">
-                Monitoring realtime suhu dan kelembapan ruangan fermentasi tempe
+                Monitoring rata-rata suhu dan kelembapan per jam selama siklus fermentasi tempe (Maksimal 36 Jam Terakhir)
             </p>
         </div>
 
-        <!-- GRAFIK -->
         <div class="row g-4">
 
-            <!-- TEMPERATURE -->
             <div class="col-md-6">
 
                 <div class="card monitor-card p-4">
@@ -58,7 +50,6 @@
 
             </div>
 
-            <!-- HUMIDITY -->
             <div class="col-md-6">
 
                 <div class="card monitor-card p-4">
@@ -77,7 +68,6 @@
 
     </div>
 
-    <!-- Bootstrap -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
@@ -85,129 +75,139 @@
         let temperatureChart;
         let humidityChart;
 
+        // FUNGSI UNTUK MENGELOMPOKKAN DAN MERATA-RATA DATA TIAP 1 JAM
+        function prosesDataPerJam(rawData) {
+            const dataPerJam = {};
+
+            rawData.forEach(item => {
+                // const date = new Date(item.created_at);
+
+                const date = new Date(item.created_at.replace(" ", "T"));
+
+                // Membuat key unik berdasarkan "Tahun-Bulan-Hari Jam:00"
+                const tahun = date.getFullYear();
+                const bulan = String(date.getMonth() + 1).padStart(2, '0');
+                const hari = String(date.getDate()).padStart(2, '0');
+                const jam = String(date.getHours()).padStart(2, '0');
+                const formatJamKey = `${tahun}-${bulan}-${hari} ${jam}:00`;
+
+                if (!dataPerJam[formatJamKey]) {
+                    dataPerJam[formatJamKey] = {
+                        totalTemp: 0,
+                        totalHum: 0,
+                        jumlahData: 0,
+                        labelWaktu: `${hari}/${bulan} ${jam}:00` // Tampilan label di grafik (Contoh: 18/06 21:00)
+                    };
+                }
+
+                // Ambil field penamaan dari JSON data kamu (menyesuaikan database property)
+                const tempValue = parseFloat(item.temperature || item.suhu || 0);
+                const humValue = parseFloat(item.humidity || item.kelembapan || 0);
+
+                dataPerJam[formatJamKey].totalTemp += tempValue;
+                dataPerJam[formatJamKey].totalHum += humValue;
+                dataPerJam[formatJamKey].jumlahData += 1;
+            });
+
+            // Urutkan waktu dari yang terlama ke terbaru
+            const sortedKeys = Object.keys(dataPerJam).sort();
+            
+            // Batasi hanya mengambil maksimal 36 titik jam terakhir
+            const limitedKeys = sortedKeys.slice(-36);
+
+            const labels = [];
+            const temperatures = [];
+            const humidities = [];
+
+            limitedKeys.forEach(key => {
+                const group = dataPerJam[key];
+                const avgTemp = group.totalTemp / group.jumlahData;
+                const avgHum = group.totalHum / group.jumlahData;
+
+                labels.push(group.labelWaktu);
+                temperatures.push(avgTemp.toFixed(1)); // Dibulatkan 1 angka di belakang koma
+                humidities.push(avgHum.toFixed(1));
+            });
+
+            return { labels, temperatures, humidities };
+        }
+
         async function fetchData() {
 
-            const response =
-            await fetch('/get-data');
+            const response = await fetch('/get-data');
+            const result = await response.json();
 
-            const result =
-            await response.json();
-
-            const labels = result.map(item => {
-
-                return new Date(item.created_at)
-                    .toLocaleTimeString();
-
-            });
-
-            const temperatures = result.map(item => {
-
-                return item.temperature;
-
-            });
-
-            const humidities = result.map(item => {
-
-                return item.humidity;
-
-            });
+            // Memproses data mentah 30-detikan menjadi ringkasan per 1 jam
+            const dataTerkompresi = prosesDataPerJam(result);
 
             updateCharts(
-                labels,
-                temperatures,
-                humidities
+                dataTerkompresi.labels,
+                dataTerkompresi.temperatures,
+                dataTerkompresi.humidities
             );
         }
 
         function createCharts() {
 
-            const tempCtx =
-            document.getElementById('temperatureChart');
+            const tempCtx = document.getElementById('temperatureChart');
 
-            temperatureChart =
-            new Chart(tempCtx, {
-
+            temperatureChart = new Chart(tempCtx, {
                 type: 'line',
-
                 data: {
-
                     labels: [],
-
                     datasets: [{
-
                         label: 'Temperature °C',
-
                         data: [],
-
                         borderWidth: 3,
-
-                        tension: 0.4
-
+                        borderColor: '#4e73df',
+                        backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                        tension: 0.4,
+                        fill: true
                     }]
                 },
-
                 options: {
-
-                    responsive: true
-
+                    responsive: true,
+                    scales: {
+                        y: { suggestedMin: 20, suggestedMax: 50 }
+                    }
                 }
             });
 
-            const humCtx =
-            document.getElementById('humidityChart');
+            const humCtx = document.getElementById('humidityChart');
 
-            humidityChart =
-            new Chart(humCtx, {
-
+            humidityChart = new Chart(humCtx, {
                 type: 'line',
-
                 data: {
-
                     labels: [],
-
                     datasets: [{
-
                         label: 'Humidity %',
-
                         data: [],
-
                         borderWidth: 3,
-
-                        tension: 0.4
-
+                        borderColor: '#1cc88a',
+                        backgroundColor: 'rgba(28, 200, 138, 0.1)',
+                        tension: 0.4,
+                        fill: true
                     }]
                 },
-
                 options: {
-
-                    responsive: true
-
+                    responsive: true,
+                    scales: {
+                        y: { suggestedMin: 10, suggestedMax: 100 }
+                    }
                 }
             });
         }
 
-        function updateCharts(
-            labels,
-            temperatures,
-            humidities
-        ) {
+        function updateCharts(labels, temperatures, humidities) {
 
             // UPDATE TEMPERATURE
-            temperatureChart.data.labels =
-            labels;
-
-            temperatureChart.data.datasets[0].data =
-            temperatures;
-
+            temperatureChart.data.labels = labels;
+            temperatureChart.data.datasets[0].data = temperatures;
             temperatureChart.update();
 
             // UPDATE HUMIDITY
-            humidityChart.data.labels =
-            labels;
-
-            humidityChart.data.datasets[0].data =
-            humidities;
-
+            humidityChart.data.labels = labels;
+            humidityChart.data.datasets[0].data = humidities;
             humidityChart.update();
         }
 
@@ -217,8 +217,8 @@
         // LOAD DATA PERTAMA
         fetchData();
 
-        // AUTO REALTIME TIAP 5 DETIK
-        setInterval(fetchData, 5000);
+        // AUTO REALTIME TIAP 1 MENIT (60000 ms) UNTUK CEK REFRESH DATA BARU
+        setInterval(fetchData, 60000);
 
     </script>
 

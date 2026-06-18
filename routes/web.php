@@ -29,6 +29,7 @@ Route::get('/', function () {
         'control'
     ));
 });
+
 Route::get('/dashboard', function () {
 
     $latest = SensorData::latest()->first();
@@ -77,7 +78,7 @@ Route::post('/sensor', [SensorController::class, 'store']);
 Route::get('/get-data', function () {
 
     return \App\Models\SensorData::latest()
-        ->take(20)
+        ->take(4500)
         ->get()
         ->reverse()
         ->values();
@@ -138,11 +139,11 @@ Route::get('/latest-data', function () {
 
 });
 
-Route::get('/test-fuzzy', function () {
+// Route::get('/test-fuzzy', function () {
 
-    $result = app(FuzzyService::class)
-        ->calculate(32, 75);
+//     $result = app(FuzzyService::class)
+//         ->calculate(32, 75);
 
-    dd($result);
+//     dd($result);
 
-});
+// });
