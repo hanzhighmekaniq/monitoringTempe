@@ -23,7 +23,8 @@ Route::get('/', function () {
 
     $control = Control::first();
 
-    return view('dashboard', compact(
+    // Diubah mengarah ke file dashboardNew.blade.php
+    return view('dashboardNew', compact(
         'latest',
         'datas',
         'control'
@@ -41,7 +42,8 @@ Route::get('/dashboard', function () {
 
     $control = Control::first();
 
-    return view('dashboard', compact(
+    // Diubah mengarah ke file dashboardNew.blade.php
+    return view('dashboardNew', compact(
         'latest',
         'datas',
         'control'

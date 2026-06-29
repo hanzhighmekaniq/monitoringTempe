@@ -2,8 +2,8 @@
     <div class="container">
 
         <!-- BRAND -->
-        <a class="navbar-brand fw-bold" href="/">
-            🍃 Monitoring Tempe
+        <a class="navbar-brand fw-bold mx-auto" href="/">
+            🍃 Monitoring Tempe Bunda
         </a>
 
         <!-- TOGGLE MOBILE -->
@@ -20,13 +20,13 @@
 
             <ul class="navbar-nav me-auto">
 
-                <li class="nav-item">
+                {{-- <li class="nav-item">
                     <a class="nav-link" href="/dashboard">
                         Dashboard
                     </a>
-                </li>
+                </li> --}}
 
-                <li class="nav-item">
+                {{-- <li class="nav-item">
                     <a class="nav-link" href="/riwayat">
                         Riwayat
                     </a>
@@ -36,7 +36,7 @@
                     <a class="nav-link" href="/grafik">
                         Grafik
                     </a>
-                </li>
+                </li> --}}
 
             </ul>
 
